@@ -1,3 +1,4 @@
+
 # OpenShift Jenkins Pipeline (DSL) Plugin - Experimental
 
 ## Overview
@@ -26,20 +27,38 @@ may serve to build that intuition before delving into the detailed documentation
 /** will demonstrate how to do this. **/
 openshift.withCluster( 'https://https://10.13.137.207:8443', 'CO8wPaLV2M2yC_jrm00hCmaz5JgwTLzvAOHYNxxv6kE' ) {
     openshift.withProject( 'myproject' ) {
-        // Create selector capable of selecting all ServiceAccount objects
+        // Create selector capable of selecting all service account objects
         def saSelector = openshift.selector( 'serviceaccount' )
         
         // Prints `oc describe serviceaccount` to Jenkins console
         saSelector.describe() 
         
-        // Prints a list of current serviceaccounts to the console
+        // Prints a list of current service accounts to the console
         echo "There are ${saSelector.count()} service accounts in project ${openshift.project()}: ${saSelector.names()}"
         
         // Create a selector that will always select the same named resource within a project; chain the delete operation
         openshift.selector( 'deploymentconfig/mydc' ).delete()
         
-        // Create a selector which will select all deploymentconfigs with the label 
-        openshift.selector( 'dc', [ environment:'qa' ] )
+        // Create a selector which will select all deploymentconfigs with the metadata label value ('environment':'qa') 
+        def qaDCs = openshift.selector( 'dc', [ environment:'qa' ] )
+        
+        // The objects selected by a selector can be iterated within the script
+        qaDCs.withEach {
+            // The conventional Groovy 'it' var is bound to a selector which selects a single object found by qaDCs
+            echo "Found deployment config: ${it.name()}
+            
+            // The selector can model the selected object as a Groovy object. The model is a copy of the selected 
+            // deployment config. Changes to it will not be reflected back to the server.
+            def dc = it.object()
+            
+            // The model is a Groovy Map whose values consist of child Maps/Lists/Primitives
+            // The script may directly interogate the values of the model according to the object's 
+            // schema: https://docs.openshift.com/container-platform/3.3/dev_guide/deployments/how_deployments_work.html
+            echo "The deployment config has labels: ${dc.metadata.labels}"
+            
+            // 
+            dc.metadata.name = 
+        }
     }
 }
 ```
