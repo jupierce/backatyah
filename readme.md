@@ -45,19 +45,59 @@ openshift.withCluster( 'https://https://10.13.137.207:8443', 'CO8wPaLV2M2yC_jrm0
         // The objects selected by a selector can be iterated within the script
         qaDCs.withEach {
             // The conventional Groovy 'it' var is bound to a selector which selects a single object found by qaDCs
-            echo "Found deployment config: ${it.name()}
+            echo "Found deployment config: ${it.name()}"
             
             // The selector can model the selected object as a Groovy object. The model is a copy of the selected 
             // deployment config. Changes to it will not be reflected back to the server.
             def dc = it.object()
             
             // The model is a Groovy Map whose values consist of child Maps/Lists/Primitives
-            // The script may directly interogate the values of the model according to the object's 
-            // schema: https://docs.openshift.com/container-platform/3.3/dev_guide/deployments/how_deployments_work.html
+            // The script may directly interogate the model according to the OpenShift object's 
+            // schema. e.g. https://docs.openshift.com/container-platform/3.3/dev_guide/deployments/how_deployments_work.html
             echo "The deployment config has labels: ${dc.metadata.labels}"
+        }
+        
+        // If the selector selects multiple API objects, they can all be modeled in one step.
+        // In this invocation, we request 'oc export' to make the objects exportable before modeling them.
+        def dcs = qaDCs.objects(exportable:true)
+        openshift.withProject( 'qa-approved' ) { // Change contexts to a new project for this closure body
+        
+            def targetDCs = openshift.selector('dc', [ 'qa-promoted' : 'yes' ] )
             
-            // 
-            dc.metadata.name = 
+            // If any deployment configs in this project are conflicting with the steps
+            // we are about to perform, delete them.
+            targetDCs.delete('--ignore-not-found')
+        
+            // Loop through the Groovy List
+            for ( dc in dcs ) {
+                // We can modify the models we extracted from the other namespace directly in Groovy. 
+                // Here, an object  label is added or modified.
+                dc.metadata.labels['qa-promoted'] = 'yes'
+                
+                // And then use normal create/replace/apply verbs to instantiate those updates on the server.
+                // Note that --save-config and --validate are being passed through directly to the invocation
+                // of oc create facility. Most arguments can be passed through. 
+                def newDC = openshift.create( dc, '--save-config', '--validate' )
+                
+                // Create returns a selector which selects the objects that it created
+                echo "Created deployment config: ${newDC.name()}"
+            }
+            
+            // The standard timeout step can wrap around an arbitrary number of OpenShift interactions.
+            // Here, we allow all operations within this block 10 minutes before aborting them.
+            timeout(10) { 
+                // The previously established selector is completely dynamic. It will select the newly
+                // created deployment configs without having to recreate it. Use untilEach to wait
+                // for all objects to satisfy a given criteria.
+                targetDCs.untilEach {
+                    return it.related('pods').untilEach {
+                        // untilEach will wait until the closure returns true for ALL selected objects 
+                        echo "Waiting for pod: ${it.name()}"
+                        return it.object().status.phase != 'Pending' 
+                    }
+                }
+            }
+            
         }
     }
 }
