@@ -1,5 +1,10 @@
 # OpenShift Pipeline (DSL) Plugin
 
+```groovy
+def t="this is a string"
+```
+
+
 <div id="openshift">
     <a name="openshift"/>
     <h2>Global Variable: openshift</h2>
