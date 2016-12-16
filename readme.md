@@ -9,7 +9,7 @@
             The <code>openshift</code> variable offers convenient access to Openshift-related functions from a Pipeline
             script. Each method will be documented using the following conventions:
             <p style="margin-left: 1em;">
-                <b>Method with closure:</b>
+                &nbsp;&nbsp;&nbsp;&nbsp;<b>Method with closure:</b>
                 <code>receiver.methodName(requiredParameter:type[, optionalParameter:type]):returnType {…closure body…}</code>
                 <br>
                 <b>Method with return value:</b>
