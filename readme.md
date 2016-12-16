@@ -1,16 +1,5 @@
 # OpenShift Pipeline (DSL) Plugin
 
-
-
-<style>
-    #openshift a:not([href]) /* Styles for anchors without href */ {
-    display: block;
-    position: relative;
-    top: -50px;
-    visibility: hidden;
-    }
-</style>
-
 <div id="openshift">
     <a name="openshift"/>
     <h2>Global Variable: openshift</h2>
@@ -22,11 +11,11 @@
             <p style="margin-left: 1em;">
                 <b>Method with closure:</b>
                 <code>receiver.methodName(requiredParameter:type[, optionalParameter:type]):returnType {…closure body…}</code>
-                <br></br>
+                <br>
                 <b>Method with return value:</b>
                 <code>receiver.methodName(requiredParameter:type[, optionalParameter:type]):returnType</code>
-                <br></br>
-                <br></br>
+                <br>
+                <br>
                 Return types will may be standard types (String, List<![CDATA[&lt;]]>String<![CDATA[&gt;]]>, bool, int, etc.) or complex types,
                 specific to this plugin, which have behaviors of their own (e.g. <a href="#Result"><code>Result</code></a>,
                 <a href="#Selector"><code>Selector</code></a>, <a href="#RolloutManager"><code>RolloutManager</code></a>). These return types are
