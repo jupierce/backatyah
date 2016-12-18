@@ -69,14 +69,14 @@ openshift.withCluster() {
     echo "Hello from the project running Jenkins: ${openshift.project()}"
 }
 ```
-Details, details:
-  * If you define a cluster configuration in Jenkins named "default", it will 
-  be used instead of assuming Jenkins is running within OpenShift.
-  * If running within OpenShift, the plugin will use the following:
-    * API Server URL: "https://${env.KUBERNETES_SERVICE_HOST}:${env.KUBERNETES_SERVICE_PORT_HTTPS}"
-    * Server Certificate Authority: /run/secrets/kubernetes.io/serviceaccount/ca.crt
-    * Default project: /run/secrets/kubernetes.io/serviceaccount/project
-    * OAuth Token: /run/secrets/kubernetes.io/serviceaccount/token
+  * Details, details:
+    * If you define a cluster configuration in Jenkins named "default", it will 
+    be used instead of assuming Jenkins is running within OpenShift.
+    * If running within OpenShift, the plugin will use the following:
+      * API Server URL: "https://${env.KUBERNETES_SERVICE_HOST}:${env.KUBERNETES_SERVICE_PORT_HTTPS}"
+      * File containing Server Certificate Authority: /run/secrets/kubernetes.io/serviceaccount/ca.crt
+      * File containing default project: /run/secrets/kubernetes.io/serviceaccount/project
+      * File containing OAuth Token: /run/secrets/kubernetes.io/serviceaccount/token
 
 
 * Now a quick introduction to Selectors which allow you to perform operations 
