@@ -27,25 +27,29 @@ If you are interested in a non-experimental Jenkins plugin, find it
 As the DSL is designed to be intuitive for experienced OpenShift users, the following high level examples 
 may serve to build that intuition before delving into the detailed documentation.
 
-* Let's start with a "Hello world" style example. 
+### Hello, World
+Let's start with a "Hello world" style example. 
+
 ```groovy
 /** Use of hostnames and OAuth token values in the DSL is heavily discouraged for maintenance and **/
 /** security reasons. The global Jenkins configuration and credential store should be used instead. **/
 /** Subsequent examples will demonstrate how to do this. **/
-openshift.withCluster( 'https://https://10.13.137.207:8443', 'CO8wPaLV2M2yC_jrm00hCmaz5JgwTLzvAOHYNxxv6kE' ) {
+openshift.withCluster( 'https://https://10.13.137.207:8443', 'CO8wPaLV2M2yC_jrm00hCmaz5Jgw...' ) {
     openshift.withProject( 'myproject' ) {
         echo "Hello from project: ${openshift.project()}"
     }
 }
 ```
 
-* Now let's simplify this script by moving host, port, token and project information out of the script and into the
-[Jenkins Global cluster configuration](Configuring-an-OpenShift-Cluster). A single logical name (e.g. "mycluster")
+### Centralizing Cluster Configuration
+Now let's simplify the first example by moving host, port, token and project information out of the script and into the
+[Jenkins Global cluster configuration](#Configuring-an-OpenShift-Cluster). A single logical name (e.g. "mycluster")
 can now be used to reference these values. This means that if the cluster information changes in the future, your 
-scripts won't have to! 
+scripts won't have to!
+ 
 ```groovy
-/** The logical name references a Jenkins Global cluster configuration which implies **/
-/** API Server URL, default credentials, and default project to use within the closure body. **/
+/** The logical name references a Jenkins cluster configuration which implies **/
+/** API Server URL, default credentials, and a default project to use within the closure body. **/
 openshift.withCluster( 'mycluster' ) {
     echo "Hello from mycluster's default project: ${openshift.project()}"
     
@@ -62,25 +66,30 @@ openshift.withCluster( 'mycluster' ) {
 ```
 
 
-* We can get even simpler! If the Jenkins instance is running within an OpenShift pod, you
+### When running Jenkins within OpenShift
+We can make the previous example even simpler! If the Jenkins instance is running within an OpenShift pod, you
 don't need to specify any cluster information. The plugin will find the information for you.
+
 ```groovy
 openshift.withCluster() {
     echo "Hello from the project running Jenkins: ${openshift.project()}"
 }
 ```
-  * Details, details:
-    * If you define a cluster configuration in Jenkins named "default", it will 
-    be used instead of assuming Jenkins is running within OpenShift.
-    * If running within OpenShift, the plugin will use the following:
-      * API Server URL: "https://${env.KUBERNETES_SERVICE_HOST}:${env.KUBERNETES_SERVICE_PORT_HTTPS}"
-      * File containing Server Certificate Authority: /run/secrets/kubernetes.io/serviceaccount/ca.crt
-      * File containing default project: /run/secrets/kubernetes.io/serviceaccount/project
-      * File containing OAuth Token: /run/secrets/kubernetes.io/serviceaccount/token
+
+Details, details:
+* If you define a cluster configuration in Jenkins named "default", the plugin will use it 
+instead of assuming Jenkins is running within OpenShift.
+* If "default" is not defined, the plugin will use the following cluster information:
+  * API Server URL: "https://${env.KUBERNETES_SERVICE_HOST}:${env.KUBERNETES_SERVICE_PORT_HTTPS}"
+  * File containing Server Certificate Authority: /run/secrets/kubernetes.io/serviceaccount/ca.crt
+  * File containing default project: /run/secrets/kubernetes.io/serviceaccount/project
+  * File containing OAuth Token: /run/secrets/kubernetes.io/serviceaccount/token
 
 
-* Now a quick introduction to Selectors which allow you to perform operations 
+### Introduction to Selectors
+Now a quick introduction to Selectors which allow you to perform operations 
 on a group of API Server objects.
+
 ```groovy
 openshift.withCluster( 'mycluster' ) {
     /** Selectors are a core concept in the DSL. They allow the user to invoke operations **/
@@ -111,8 +120,10 @@ openshift.withCluster( 'mycluster' ) {
 }
 ```
 
-* Describing things is fine, but let's actually make something happen! Here, notice
+### Actions speak louder than words
+Describing things is fine, but let's actually make something happen! Here, notice
 that new Selectors are regularly returned by DSL operations.
+
 ```groovy
 openshift.withCluster( 'mycluster' ) {
     // Run `oc new-app https://github.com/openshift/ruby-hello-world` . It 
@@ -149,8 +160,8 @@ openshift.withCluster( 'mycluster' ) {
 }
 ```
 
+### Peer inside of OpenShift objects 
 
-* Want more information about the OpenShift objects you are working with?
 ```groovy
 openshift.withCluster( 'mycluster' ) {
     def dcs = openshift.newApp( "https://github.com/openshift/ruby-hello-world" ).narrow('dc')
@@ -172,7 +183,9 @@ openshift.withCluster( 'mycluster' ) {
 ```
 
 
-* Watching and waiting? Of course!
+### Watching and waiting? Of course!
+Patience is a virtue.
+
 ```groovy
 openshift.withCluster( 'mycluster' ) {
     def bc = openshift.newApp( "https://github.com/openshift/ruby-hello-world" ).narrow('bc')
@@ -232,7 +245,8 @@ openshift.withCluster( 'mycluster' ) {
 ```    
     
      
-* Deleting objects. Easy.
+### Deleting objects. Easy.
+
 ```groovy
 openshift.withCluster( 'mycluster' ) {
 
@@ -240,7 +254,8 @@ openshift.withCluster( 'mycluster' ) {
     openshift.selector( 'dc', [ environment:'qa' ] ).delete()
 ```
 
-* Creating objects. Easier than you were expecting... hopefully.
+### Creating objects. Easier than you were expecting... hopefully.
+
 ```groovy
 openshift.withCluster( 'mycluster' ) {
 
@@ -284,7 +299,8 @@ openshift.withCluster( 'mycluster' ) {
 }
 ```
 
-* Can't live without OpenShift templates? No problem.
+### Can't live without OpenShift templates? No problem.
+
 ```groovy
 openshift.withCluster( 'mycluster' ) {
     
@@ -322,7 +338,7 @@ openshift.withCluster( 'mycluster' ) {
 }
 ```
 
-* Want to promote / migrate object between environments?
+### Want to promote / migrate object between environments?
 ```groovy
 openshift.withCluster( 'devcluster' ) {
     
