@@ -43,7 +43,7 @@ openshift.withCluster( 'https://https://10.13.137.207:8443', 'CO8wPaLV2M2yC_jrm0
 
 ### Centralizing Cluster Configuration
 Now let's simplify the first example by moving host, port, token and project information out of the script and into the
-[Jenkins Global cluster configuration](#configuring-an-openShift-cluster). A single logical name (e.g. "mycluster")
+[Jenkins cluster configuration](#configuring-an-openshift-cluster). A single logical name (e.g. "mycluster")
 can now be used to reference these values. This means that if the cluster information changes in the future, your 
 scripts won't have to!
  
@@ -65,25 +65,16 @@ openshift.withCluster( 'mycluster' ) {
 }
 ```
 
-### When running Jenkins within OpenShift
-We can make the previous example even simpler! If the Jenkins instance is running within an OpenShift pod, you
-don't need to specify any cluster information. The plugin will find the information for you.
+### Sticking with the defaults
+We can make the previous example even simpler! If you have defined a cluster configuration named 
+"default" or if the Jenkins instance is running within an OpenShift pod, you
+don't need to specify any cluster information. 
 
 ```groovy
-openshift.withCluster() {
+openshift.withCluster() { // Use "default" cluster or fallback to OpenShift detection
     echo "Hello from the project running Jenkins: ${openshift.project()}"
 }
 ```
-
-Details, details:
-* If you define a cluster configuration in Jenkins named "default", the plugin will use it 
-instead of assuming Jenkins is running within OpenShift.
-* If "default" is not defined, the plugin will use the following cluster information:
-  * API Server URL: "https://${env.KUBERNETES_SERVICE_HOST}:${env.KUBERNETES_SERVICE_PORT_HTTPS}"
-  * File containing Server Certificate Authority: /run/secrets/kubernetes.io/serviceaccount/ca.crt
-  * File containing default project: /run/secrets/kubernetes.io/serviceaccount/project
-  * File containing OAuth Token: /run/secrets/kubernetes.io/serviceaccount/token
-
 
 ### Introduction to Selectors
 Now a quick introduction to Selectors which allow you to perform operations 
@@ -403,10 +394,42 @@ openshift.withCluster( 'mycluster' ) {
 ```
 
 
+### I need more.
+If the available DSL operations are not sufficient, you can always pass a
+raw command directly to the oc binary. If you do not specify a server,
+token, or project, normal closure context rules will apply.
+```groovy
+openshift.withCluster( 'mycluster' ) {
+    def result = openshift.raw( 'status', '-v' )
+    echo "Cluster status: ${result.out}"
+}
+```
+
+But honestly, wouldn't you rather contribute and add the operation you need? ;-)
+
+
 ## Configuring an OpenShift Cluster
 
-Configuring clusters is a simple matter. As an authorized Jenkins user, navigate
-to Manage Jenkins -> Configure System -> and find the OpenShift Plugin section.
+Are you running your Jenkins instance within an OpenShift cluster? Does it
+only interact with resources within that cluster? You might not need to do anything here!
+Leaving out the cluster name when calling openshift.withCluster will cause
+the plugin to try:
+1. To access a Jenkins cluster configuration named "default" and, if one does not exist..
+2. Assume it is running within an OpenShift Pod with a service account. In this scenario, 
+the following cluster information will be used:
+  * API Server URL: "https://${env.KUBERNETES_SERVICE_HOST}:${env.KUBERNETES_SERVICE_PORT_HTTPS}"
+  * File containing Server Certificate Authority: /run/secrets/kubernetes.io/serviceaccount/ca.crt
+  * File containing default project: /run/secrets/kubernetes.io/serviceaccount/project
+  * File containing OAuth Token: /run/secrets/kubernetes.io/serviceaccount/token
+
+```groovy
+openshift.withCluster() {  // find "default" cluster configuration and fallback to OpenShift cluster detection
+    ... operations relative to the default cluster ...
+}
+```
+
+If you do need to configure clusters, it is a simple matter. As an authorized 
+Jenkins user, navigate to Manage Jenkins -> Configure System -> and find the OpenShift Plugin section.
  
 Add a new cluster and you should see a form like the following. 
 ![cluster-config](src/readme/images/cluster-config.png)
@@ -420,18 +443,72 @@ openshift.withCluster( 'mycluster' ) {
 }
 ```
 
-If you name your cluster "default", it will be used automatically if withCluster is
-specified without any cluster name.
-```groovy
-openshift.withCluster() {
-    ... operations relative to the default cluster ...
-}
-```
-
-If this empty withCluster is used and a "default" cluster is not defined, the plugin will
-assume Jenkins is running within an OpenShift Pod and try to find the necessary
-information automatically.
-
-
-
 ## Setting up Credentials
+To define a new credential for the DSL in the Jenkins credential store, navigate to 
+Credentials -> System -> Global credentials -> Add Credentials (you can the domain based
+on your particular security requirements). 
+
+![token-config](src/readme/images/token-credential-config.png)
+
+This token can then be selected as the default token for a given Jenkins configuration
+cluster OR used tactically in the DSL with openshift.doAs( 'my-privileged-credential-id' ) {...} .
+
+## What else can I expect?
+
+```groovy
+openshift.withCluster(...) {...}
+openshift.withProject(...) {...}
+openshift.doAs(...) {...}
+
+openshift.selector(...)
+openshift.create(...)
+openshift.apply(...)
+openshift.replace(...)
+openshift.newProject(...)
+openshift.newApp(...)
+openshift.newBuild(...)
+openshift.startBuild(...)
+openshift.process(...)
+openshift.exec(...)
+openshift.idle(...)
+openshift._import(...)
+openshift.policy(...)
+openshift.run(...)
+openshift.secrets(...)
+openshift.tag(...)
+openshift.logLevel(...)
+openshift.verbose(...)
+openshift.delete(...)
+openshift.newProject(...)
+openshift.raw(...)
+
+selector.object(...)
+selector.objects(...)
+selector.name(...)
+selector.names(...)
+selector.delete(...)
+selector.logs(...)
+selector.count(...)
+selector.freeze(...)
+selector.narrow(...)
+selector.related(...)
+selector.startBuild(...)
+selector.withEach {...}
+selector.untilEach(...) {...}
+selector.watch {...}
+
+selector.rollout().history(...)
+selector.rollout().latest(...)
+selector.rollout().pause(...)
+selector.rollout().resume(...)
+selector.rollout().status(...)
+selector.rollout().undo(...)
+```
+ 
+ 
+## You call this documentation?!
+No. This is a lighthearted overview of some of the capabilities of the plugin. The details
+of the API are embedded within the plugin's online documentation. To find it:
+1. Create a new Pipeline Item 
+2. Click "Pipeline Syntax" below the DSL text area
+3. On the left navigation menu, click "Global Variables Reference"
