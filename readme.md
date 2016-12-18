@@ -71,7 +71,7 @@ We can make the previous example even simpler! If you have defined a cluster con
 don't need to specify any cluster information. 
 
 ```groovy
-openshift.withCluster() { // Use "default" cluster or fallback to OpenShift detection
+openshift.withCluster() { // Use "default" cluster or fallback to OpenShift cluster detection
     echo "Hello from the project running Jenkins: ${openshift.project()}"
 }
 ```
@@ -118,7 +118,7 @@ that new Selectors are regularly returned by DSL operations.
 openshift.withCluster( 'mycluster' ) {
     // Run `oc new-app https://github.com/openshift/ruby-hello-world` . It 
     // returns a Selector which will select the objects it created for you.
-    def created = openshift.newApp( "https://github.com/openshift/ruby-hello-world" )
+    def created = openshift.newApp( 'https://github.com/openshift/ruby-hello-world' )
     
     // This Selector exposes the same operations you have already seen.
     // (And many more that you haven't!).
@@ -154,7 +154,7 @@ openshift.withCluster( 'mycluster' ) {
 
 ```groovy
 openshift.withCluster( 'mycluster' ) {
-    def dcs = openshift.newApp( "https://github.com/openshift/ruby-hello-world" ).narrow('dc')
+    def dcs = openshift.newApp( 'https://github.com/openshift/ruby-hello-world' ).narrow('dc')
     
     // dcs is a Selector which selects the deployment config created by new-app. How do
     // we get more information about this DC? Turn it into a Groovy object using object().
@@ -178,7 +178,7 @@ Patience is a virtue.
 
 ```groovy
 openshift.withCluster( 'mycluster' ) {
-    def bc = openshift.newApp( "https://github.com/openshift/ruby-hello-world" ).narrow('bc')
+    def bc = openshift.newApp( 'https://github.com/openshift/ruby-hello-world' ).narrow('bc')
     
     // The build config will create a new build object automatically, but how do
     // we find it? The 'related(kind)' operation can create an appropriate Selector for us.
@@ -192,7 +192,7 @@ openshift.withCluster( 'mycluster' ) {
         // change. The watch will only terminate when the body returns true.
         builds.watch {
             // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
-            echo "So far, ${bc.name()} has created builds: ${it.names()}
+            echo "So far, ${bc.name()} has created builds: ${it.names()}"
             
             // End the watch only once a build object has been created.
             return it.count() > 0   
