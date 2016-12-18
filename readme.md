@@ -122,7 +122,7 @@ openshift.withCluster( 'mycluster' ) {
     
     // This Selector exposes the same operations you have already seen.
     // (And many more that you haven't!).
-    echo "new-app created ${created.count()} objects named: ${created.names()"
+    echo "new-app created ${created.count()} objects named: ${created.names()}"
     created.describe()
     
     // We can create a Selector from the larger set which only selects 
