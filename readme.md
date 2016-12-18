@@ -56,10 +56,28 @@ openshift.withCluster( 'mycluster' ) {
     
     // And even scope operations to other clusters within the same script
     openshift.withCluster( 'myothercluster' ) {
-        echo "Hello from myothercluster's default project: ${openshift.project()}"
+        echo "Hello fronm myothercluster's default project: ${openshift.project()}"
     }
 }
 ```
+
+
+* We can get even simpler! If the Jenkins instance is running within an OpenShift pod, you
+don't need to specify any cluster information. The plugin will find the information for you.
+```groovy
+openshift.withCluster() {
+    echo "Hello from the project running Jenkins: ${openshift.project()}"
+}
+```
+Details, details:
+  * If you define a cluster configuration in Jenkins named "default", it will 
+  be used instead of assuming Jenkins is running within OpenShift.
+  * If running within OpenShift, the plugin will use the following:
+    * API Server URL: "https://${env.KUBERNETES_SERVICE_HOST}:${env.KUBERNETES_SERVICE_PORT_HTTPS}"
+    * Server Certificate Authority: /run/secrets/kubernetes.io/serviceaccount/ca.crt
+    * Default project: /run/secrets/kubernetes.io/serviceaccount/project
+    * OAuth Token: /run/secrets/kubernetes.io/serviceaccount/token
+
 
 * Now a quick introduction to Selectors which allow you to perform operations 
 on a group of API Server objects.
@@ -266,7 +284,7 @@ openshift.withCluster( 'mycluster' ) {
 }
 ```
 
-* Can't live without OpenShift templates?. No problem.
+* Can't live without OpenShift templates? No problem.
 ```groovy
 openshift.withCluster( 'mycluster' ) {
     
@@ -347,6 +365,33 @@ openshift.withCluster( 'devcluster' ) {
 
 ## Configuring an OpenShift Cluster
 
+Configuring clusters is a simple matter. As an authorized Jenkins user, navigate
+to Manage Jenkins -> Configure System -> and find the OpenShift Plugin section.
+ 
+Add a new cluster and you should see a form like the following. 
 ![cluster-config](src/readme/images/cluster-config.png)
+
+The cluster "name" (e.g. "mycluster" is the only thing you need to remember when writing scripts.
+If the cluster configuration has a default credential or project, they will be used automatically
+when operations are performed relative to that cluster (unless they are explicitly overridden).
+```groovy
+openshift.withCluster( 'mycluster' ) {
+    ... operations relative to this cluster ...
+}
+```
+
+If you name your cluster "default", it will be used automatically if withCluster is
+specified without any cluster name.
+```groovy
+openshift.withCluster() {
+    ... operations relative to the default cluster ...
+}
+```
+
+If this empty withCluster is used and a "default" cluster is not defined, the plugin will
+assume Jenkins is running within an OpenShift Pod and try to find the necessary
+information automatically.
+
+
 
 ## Setting up Credentials
