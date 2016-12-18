@@ -43,7 +43,7 @@ openshift.withCluster( 'https://https://10.13.137.207:8443', 'CO8wPaLV2M2yC_jrm0
 
 ### Centralizing Cluster Configuration
 Now let's simplify the first example by moving host, port, token and project information out of the script and into the
-[Jenkins Global cluster configuration](#Configuring-an-OpenShift-Cluster). A single logical name (e.g. "mycluster")
+[Jenkins Global cluster configuration](#configuring-an-openShift-cluster). A single logical name (e.g. "mycluster")
 can now be used to reference these values. This means that if the cluster information changes in the future, your 
 scripts won't have to!
  
@@ -64,7 +64,6 @@ openshift.withCluster( 'mycluster' ) {
     }
 }
 ```
-
 
 ### When running Jenkins within OpenShift
 We can make the previous example even simpler! If the Jenkins instance is running within an OpenShift pod, you
@@ -339,6 +338,7 @@ openshift.withCluster( 'mycluster' ) {
 ```
 
 ### Want to promote / migrate object between environments?
+
 ```groovy
 openshift.withCluster( 'devcluster' ) {
     
@@ -375,6 +375,30 @@ openshift.withCluster( 'devcluster' ) {
         }
     }
 
+}
+```
+
+### Who are you, really?
+Getting advanced? You might need more than just default credentials associated
+with your cluster. You can leverage any OpenShift OAuth token in the Jenkins
+credential store by passing doAs the credential's identifier. If you think 
+security is a luxury you can live without (it's not), you can also pass doAs 
+a raw token value.
+
+```groovy
+openshift.withCluster( 'mycluster' ) {
+    openshift.doAs( 'my-normal-credential-id' ) {
+        ...
+    }
+
+    openshift.doAs( 'my-privileged-credential-id' ) {
+        ...
+    }
+
+    // Raw token value. Not recommended.
+    openshift.doAs( 'CO8wPaLV2M2yC_jrm00hCmaz5Jgw...' ) {
+        ...
+    }
 }
 ```
 
